@@ -1,4 +1,4 @@
-function Valid_TBPs = Reconstruct_TBPs(code_generator, d_tilde, N)
+function TBP_node = Reconstruct_TBPs(code_generator, d_tilde, N)
 
 %
 %   The function is a subfunction of "Search_DSO_CRC_by_Construction",
@@ -11,15 +11,10 @@ function Valid_TBPs = Reconstruct_TBPs(code_generator, d_tilde, N)
 %
 %   Outputs:
 %       1) TBP_node: a struct including the following members:
-%           (1) crc_distance: a scalar denoting the minimum undetected
-%                   distance provided by the DSO CRC.
-%           (1) undetected_spectrum: a 2^(m-1)*d_tilde matrix indicating the 
-%                   undetected spectrum for all CRC candidates over distance 
-%                   horizon;
-%           (2) list: a d_tilde*1 cell indicating the list of length-N TBPs
+%           (1) list: a d_tilde*1 cell indicating the list of length-N TBPs
 %                   arranged in increasing distances. The true distance is
 %                   the corresponding index minus 1.
-%           (3) aggregate: a scalar indicating the number of length-N TBPs
+%           (2) aggregate: a scalar indicating the number of length-N TBPs
 %                   of distance less than 'd_tilde'.
 %
 %   Notes:
@@ -159,10 +154,20 @@ parfor iter = 1:d_tilde
 end
 
 
-% Save results
-file_name = ['TBPs_CC_',code_string,'_N_',num2str(N),'.mat'];
+TBP_node.list = Valid_TBPs;
 
-save(file_name,'Valid_TBPs','-v7.3');
+% Miscellaneous: Compute total number of TBPs found
+aggregate = 0;
+for dist = 1:d_tilde
+    aggregate = aggregate +size(Valid_TBPs{dist},1);
+end
+
+TBP_node.aggregate = aggregate;
+
+% Save results
+file_name = ['TBP_node_CC_',code_string,'_N_',num2str(N),'.mat'];
+
+save(file_name,'TBP_node','-v7.3');
 
 
 

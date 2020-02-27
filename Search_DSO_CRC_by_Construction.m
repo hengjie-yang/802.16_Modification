@@ -29,8 +29,8 @@
 %                   of distance less than 'd_tilde'.
 %
 %   Notes:
-%       1) Must run "Collect_Irreducible_Error_Events" first if IEEEs are
-%       not generated before
+%       1) Must run "Collect_Irreducible_Error_Events" first if IEEs are
+%       not generated before.
 %       2) The distance index equals true distance + 1, whereas the length
 %       index equals true length.
 %       

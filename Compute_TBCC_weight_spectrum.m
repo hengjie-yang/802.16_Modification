@@ -1,4 +1,4 @@
-function Weights_node = Compute_TBCC_weight_spectrum(constraint_length, code_generator, N)
+function weight_node = Compute_TBCC_weight_spectrum(constraint_length, code_generator, N)
 
 % 
 %   This function computes the weight spectrum of a given TBCC of length N
@@ -60,12 +60,24 @@ weight_spectrum = fliplr(weight_spectrum);
 weight_spectrum = double(weight_spectrum);
 weight_spectrum = weight_spectrum';
 
-Weights_node.weight_spectrum = weight_spectrum;
-Weights_node.overall_weight_function = Poly;
-Weights_node.weight_function_per_state = polys;
+weight_node.weight_spectrum = weight_spectrum;
+weight_node.overall_weight_function = Poly;
+weight_node.weight_function_per_state = polys;
 
 
+% Save results
+code_string = '';
+for iter = 1:size(code_generator,2)
+    if iter < size(code_generator,2)
+        code_string = [code_string, num2str(code_generator(iter)), '_'];
+    else
+        code_string = [code_string, num2str(code_generator(iter))];
+    end
+end
 
+file_name = ['weight_node_TBCC_',code_string,'_N_',num2str(N),'.mat'];
+
+save(file_name,'weight_node','-v7.3');
 
 
 

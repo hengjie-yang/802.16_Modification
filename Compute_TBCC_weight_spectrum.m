@@ -15,6 +15,7 @@ function weight_node = Compute_TBCC_weight_spectrum(constraint_length, code_gene
 %       elements.
 %
 
+%   Copyright 2020 Hengjie Yang
 polys = [];
 trellis = poly2trellis(constraint_length, code_generator);
 NumStates = trellis.numStates;

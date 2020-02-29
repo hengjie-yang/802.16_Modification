@@ -13,7 +13,9 @@ function upper_bound = Search_upper_bound_d_CRC(code_generator, N, m)
 %       1)upper bound: a scalar denoting the distance at which the
 %       accumulative number of codewords first exceeds 2^(m-1).
 %
-%
+%   Notes:
+%       1) must run "Compute_TBCC_weight_spectrum.m" first if weight_node
+%       has not been generated before.
 
 %   Copyright 2020 Hengjie Yang
 

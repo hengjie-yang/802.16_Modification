@@ -24,6 +24,7 @@ function TBP_node = Reconstruct_TBPs(code_generator, d_tilde, N)
 %       index equals true length.
 % 
 
+%   Copyright 2020 Hengjie Yang
 
 
 code_string = '';
@@ -65,21 +66,30 @@ for iter = 1:NumStates % find TBPs from every possible start state
 
     start_state = V(iter);
     List = IEE.list{start_state};
+    
+    %save memory
+    for dist = 1:d_tilde
+        List{dist} = int8(List{dist});
+    end
+    
     Lengths = IEE.lengths{start_state};
     disp(['    Current start state: ', num2str(start_state),' number of IEEs: ',...
         num2str(IEE.state_spectrum(start_state))]);
 
     for dist = 0:d_tilde-1 % true distance
+        disp(['        current distance: ',num2str(dist)]);
         for len = 1:N %true length
             for weight = dist:-1:0 % true IEE weight
                 for ii = 1:size(List{weight+1},1)
                     l = Lengths{weight+1}(ii);
                     if  weight == dist && l == len
+                        Temp_TBPs{dist+1}{len+1} = int8(Temp_TBPs{dist+1}{len+1}); % save memory
                         Temp_TBPs{dist+1}{len+1} =[Temp_TBPs{dist+1}{len+1}; List{weight+1}(ii,1:l)];    
                     elseif l < len && ~isempty(Temp_TBPs{dist-weight+1}{len-l+1})
                         [row, ~] = size(Temp_TBPs{dist-weight+1}{len-l+1});
                         Added_bits = repmat(List{weight+1}(ii,1:l), row ,1);
                         New_TBPs = [Temp_TBPs{dist-weight+1}{len-l+1}, Added_bits];
+                        Temp_TBPs{dist+1}{len+1} = int8(Temp_TBPs{dist+1}{len+1}); % save memory
                         Temp_TBPs{dist+1}{len+1} = [Temp_TBPs{dist+1}{len+1}; New_TBPs];
                     end
                 end
@@ -92,6 +102,7 @@ for iter = 1:NumStates % find TBPs from every possible start state
     for dist = 1:d_tilde
         for len = 1:N+1
             if ~isempty(Temp_TBPs{dist}{len})
+                TBPs{dist}{len} = int8(TBPs{dist}{len}); %save memory
                 TBPs{dist}{len} = [TBPs{dist}{len}; Temp_TBPs{dist}{len}];
             end
         end
@@ -102,6 +113,7 @@ end
 
 for dist=1:d_tilde
     if ~isempty(TBPs{dist}{N+1})
+        Valid_TBPs{dist} = int8(Valid_TBPs{dist});%save memory
         Valid_TBPs{dist} = TBPs{dist}{N+1};
     end
 end

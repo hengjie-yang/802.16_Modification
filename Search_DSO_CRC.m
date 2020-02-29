@@ -1,4 +1,4 @@
-function Poly_node = Search_DSO_CRC(code_generator, d_tilde, m, base)
+function Poly_node = Search_DSO_CRC(code_generator, d_tilde, N, m, base)
 
 %
 %   The function serves as a subfunction of
@@ -8,8 +8,9 @@ function Poly_node = Search_DSO_CRC(code_generator, d_tilde, m, base)
 %   Inputs:
 %       1) code_generator: a matrix specifying the generator of TBCC
 %       2) d_tilde: the distance threshold
-%       3) m: a scalar denoting the CRC degree
-%       4) base: a scalar denoting the final presentation of CRCs,
+%       3) N: a scalar denoting trellis length
+%       4) m: a scalar denoting the CRC degree
+%       5) base: a scalar denoting the final presentation of CRCs,
 %       typically 8 or 16.
 %
 %   Outputs:
@@ -28,7 +29,10 @@ function Poly_node = Search_DSO_CRC(code_generator, d_tilde, m, base)
 %       1) Must run "Reconstruct_TBPs" first if TBPs are not generated before.
 %
 
-if nargin < 4
+%   Copyright 2020 Hengjie Yang
+
+
+if nargin < 5
     base = 16;
 end
 
@@ -46,7 +50,7 @@ end
 load(file_name, 'TBP_node');
 
 Valid_TBPs = TBP_node.list;
-success_flag = False;
+success_flag = false;
 stopped_distance = -1;
 min_dist = -1;
 
@@ -85,7 +89,7 @@ for dist = 2:d_tilde % skip checking all-zero TBPs
         if length(locations) == 1
             crc_gen_polys = Candidate_poly_octal(locations(1),:);
             crc_gen_poly_vecs = Candidate_CRCs(locations(1),:);
-            success_flag = True;
+            success_flag = true;
             break
         end  
     end
@@ -102,7 +106,7 @@ end
 
 
 % Step 4: Identify the minimum undetected distance.
-if success_flag == True
+if success_flag == true
     disp('Step 4: Identify the minimum undetected distance by the DSO CRC.');
     for dist = 2:d_tilde
         if ~isempty(Valid_TBPs{dist})

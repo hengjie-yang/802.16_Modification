@@ -31,6 +31,7 @@ function Poly_node = Search_DSO_CRC(code_generator, d_tilde, N, m, base)
 
 %   Copyright 2020 Hengjie Yang
 
+tic
 
 if nargin < 5
     base = 16;
@@ -130,8 +131,11 @@ Poly_node.crc_gen_polys = crc_gen_polys;
 Poly_node.stopped_distance = stopped_distance;
 Poly_node.crc_distance = min_dist;
 
-file_name = ['CRC_poly_CC_',code_string,'_N_',num2str(N),'.mat'];
+file_name = ['Poly_node_TBCC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'_m_',num2str(m),'.mat'];
 save(file_name,'Poly_node','-v7.3');
+
+timing = toc;
+disp(['Execution time: ',num2str(timing),'s']);
 
 end
 

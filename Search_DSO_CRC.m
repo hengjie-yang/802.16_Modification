@@ -133,9 +133,24 @@ Poly_node.crc_distance = min_dist;
 file_name = ['CRC_poly_CC_',code_string,'_N_',num2str(N),'.mat'];
 save(file_name,'Poly_node','-v7.3');
 
+end
 
+function weight = Check_divisible_by_distance(poly_vec,error_events)
 
+% This function computes the undetected weight for "poly_vec" based on "error_events".
 
+weight = 0;
+poly_vec = fliplr(poly_vec); % flip degree order from lowest to highest
+
+for i = 1:size(error_events,1)
+    temp = double(error_events(i,:));
+    [~, remd] = gfdeconv(temp,poly_vec, 2);
+    if remd == 0
+        weight = weight + 1;
+    end
+end
+
+end
 
 
 

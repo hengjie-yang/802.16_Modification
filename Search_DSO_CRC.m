@@ -70,9 +70,10 @@ min_dist = -1;
 disp('Step 3: Search for the DSO CRC generator polynomial.');
 
 d_start = 2;
-Candidate_CRCs = dec2bin(0:2^(m-1)-1) - '0';
-Candidate_CRCs = [ones(2^(m-1),1), Candidate_CRCs, ones(2^(m-1),1)]; % degree order from highest to lowest
-Undetected_spectrum = inf(2^(m-1), 1); % each column represents the undected spectrum
+List_size = 2^(m-1);
+Candidate_CRCs = dec2bin(0:List_size-1) - '0';
+Candidate_CRCs = [ones(List_size,1), Candidate_CRCs, ones(2^(m-1),1)]; % degree order from highest to lowest
+Undetected_spectrum = inf(List_size, 1); % each column represents the undected spectrum
 
 Candidate_poly_octal=dec2base(bin2dec(num2str(Candidate_CRCs)),base); % octal form
 mask = true(size(Candidate_CRCs,1),1);
@@ -82,8 +83,8 @@ locations = find(mask == true);
 
 if ~isempty(cur_poly_node)
     Candidate_poly_octal = cur_poly_node.crc_gen_polys;
-    List_size = size(Candidate_poly_octal, 1);
     d_start = cur_poly_node.stopped_distance + 1;
+    List_size = size(Candidate_poly_octal, 1);
     Candidate_CRCs = dec2bin(base2dec(Candidate_poly_octal, base))-'0';
     Undetected_spectrum = inf(List_size, d_start-1);
     mask = true(size(Candidate_CRCs,1),1);
@@ -98,7 +99,7 @@ crc_gen_poly_vecs = [];
 
 
 for dist = d_start:d_tilde % skip checking all-zero TBPs
-    Undetected_spectrum = [Undetected_spectrum, inf(2^(m-1), 1)];
+    Undetected_spectrum = [Undetected_spectrum, inf(List_size, 1)];
     weight_vec = zeros(size(locations, 1), 1);
     if ~isempty(Valid_TBPs{dist})
         parfor i = 1:size(locations, 1) % This part is parallelizable

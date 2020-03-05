@@ -26,6 +26,7 @@ function TBP_node = Reconstruct_TBPs(code_generator, d_tilde, N)
 
 %   Copyright 2020 Hengjie Yang
 
+tic
 
 code_string = '';
 for iter = 1:size(code_generator,2)
@@ -180,6 +181,11 @@ TBP_node.aggregate = aggregate;
 file_name = ['TBP_node_CC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
 
 save(file_name,'TBP_node','-v7.3');
+
+timing = toc;
+disp(['Execution time: ',num2str(timing),'s']);
+
+
 
 
 

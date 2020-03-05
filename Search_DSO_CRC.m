@@ -1,4 +1,4 @@
-function Poly_node = Search_DSO_CRC(code_generator, d_tilde, N, m, base)
+function Poly_node = Search_DSO_CRC(code_generator, d_tilde, N, m, cur_poly_node, base)
 
 %
 %   The function serves as a subfunction of
@@ -10,7 +10,9 @@ function Poly_node = Search_DSO_CRC(code_generator, d_tilde, N, m, base)
 %       2) d_tilde: the distance threshold
 %       3) N: a scalar denoting trellis length
 %       4) m: a scalar denoting the CRC degree
-%       5) base: a scalar denoting the final presentation of CRCs,
+%       5) cur_poly_node: existing Poly_node found previously. See format
+%               in the Outputs
+%       6) base: a scalar denoting the final presentation of CRCs,
 %       typically 8 or 16.
 %
 %   Outputs:
@@ -27,13 +29,21 @@ function Poly_node = Search_DSO_CRC(code_generator, d_tilde, N, m, base)
 %
 %   Notes:
 %       1) Must run "Reconstruct_TBPs" first if TBPs are not generated before.
+%       2) If loaded with existing Poly_node, "cur_poly_node", the algorithm 
+%           will extract the stopped distance and refined candidate list and 
+%           base on these information to continue the search.
 %
 
 %   Copyright 2020 Hengjie Yang
 
 tic
 
+Poly_node = {};
 if nargin < 5
+   cur_poly_node = {}; 
+end
+
+if nargin < 6
     base = 16;
 end
 
@@ -42,11 +52,12 @@ for iter = 1:size(code_generator,2)
     code_string = [code_string, num2str(code_generator(iter)), '_'];
 end
 
-file_name = ['TBP_node_CC_',code_string,'_N_',num2str(N),'.mat'];
+file_name = ['TBP_node_CC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
 if ~exist(file_name, 'file')
     disp(['Error: the file ',file_name, ' does not exist!']);
     return
 end
+
 
 load(file_name, 'TBP_node');
 
@@ -58,20 +69,35 @@ min_dist = -1;
 % Step 3: Search for the DSO CRC generator polynomial.
 disp('Step 3: Search for the DSO CRC generator polynomial.');
 
+d_start = 2;
 Candidate_CRCs = dec2bin(0:2^(m-1)-1) - '0';
 Candidate_CRCs = [ones(2^(m-1),1), Candidate_CRCs, ones(2^(m-1),1)]; % degree order from highest to lowest
 Undetected_spectrum = inf(2^(m-1), 1); % each column represents the undected spectrum
 
 Candidate_poly_octal=dec2base(bin2dec(num2str(Candidate_CRCs)),base); % octal form
-
 mask = true(size(Candidate_CRCs,1),1);
 locations = find(mask == true);
+
+
+
+if ~isempty(cur_poly_node)
+    Candidate_poly_octal = cur_poly_node.crc_gen_polys;
+    List_size = size(Candidate_poly_octal, 1);
+    d_start = cur_poly_node.stopped_distance + 1;
+    Candidate_CRCs = dec2bin(base2dec(Candidate_poly_octal, base))-'0';
+    Undetected_spectrum = inf(List_size, d_start-1);
+    mask = true(size(Candidate_CRCs,1),1);
+    locations = find(mask == true);
+end
+
+
+
 
 crc_gen_polys = [];
 crc_gen_poly_vecs = [];
 
 
-for dist = 2:d_tilde % skip checking all-zero TBPs
+for dist = d_start:d_tilde % skip checking all-zero TBPs
     Undetected_spectrum = [Undetected_spectrum, inf(2^(m-1), 1)];
     weight_vec = zeros(size(locations, 1), 1);
     if ~isempty(Valid_TBPs{dist})

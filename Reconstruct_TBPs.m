@@ -33,9 +33,18 @@ for iter = 1:size(code_generator,2)
     code_string = [code_string, num2str(code_generator(iter)), '_'];
 end
 
+% write status messages in a .txt file
+file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...
+    '_N_',num2str(N),'.txt'];
+StateFileID = fopen(file_name,'w');
+
+
+
 file_name = ['IEEs_CC_',code_string,'d_',num2str(d_tilde),'.mat'];
 if ~exist(file_name, 'file')
-    disp(['Error: the file ',file_name, ' does not exist!']);
+    msg = ['Error: the file ',file_name, ' does not exist!'];
+    disp(msg);
+    fprintf(StateFileID, '%s\n', msg);
     return
 end
 
@@ -59,7 +68,9 @@ Valid_TBPs = cell(d_tilde,1); % stores TBPs of length equal to N
 
 % Step 1: Rebuild the tail-biting paths (TBPs) via IEEs
 % Warning: the true distance = dist - 1 because we manually add 1
-disp('Step 1: Reconstruct length-N TBPs using dynamic programming.');
+msg = 'Step 1: Reconstruct length-N TBPs using dynamic programming.';
+disp(msg);
+fprintf(StateFileID, '%s\n', msg);
 for iter = 1:NumStates % find TBPs from every possible start state
     for dist = 1:d_tilde
         Temp_TBPs{dist} = cell(N+1, 1);
@@ -74,11 +85,14 @@ for iter = 1:NumStates % find TBPs from every possible start state
     end
     
     Lengths = IEE.lengths{start_state};
-    disp(['    Current start state: ', num2str(start_state),' number of IEEs: ',...
-        num2str(IEE.state_spectrum(start_state))]);
-
+    msg = ['    Current start state: ', num2str(start_state),' number of IEEs: ',...
+        num2str(IEE.state_spectrum(start_state))];
+    disp(msg);
+    fprintf(StateFileID, '%s\n', msg);
     for dist = 0:d_tilde-1 % true distance
-        disp(['        current distance: ',num2str(dist)]);
+        msg = ['        current distance: ',num2str(dist)];
+        disp(msg);
+        fprintf(StateFileID, '%s\n', msg);
         for len = 1:N %true length
             for weight = dist:-1:0 % true IEE weight
                 for ii = 1:size(List{weight+1},1)
@@ -136,9 +150,17 @@ clearvars TBPs Temp_TBPs
 
 
 % Step 2: Build all valid TBPs through circular shift
-disp('Step 2: Build remaining TBPs through cyclic shift.');
+msg = 'Step 2: Build remaining TBPs through cyclic shift.';
+disp(msg);
+fprintf(StateFileID, '%s\n', msg);
+fclose(StateFileID);
 parfor iter = 1:d_tilde
-    disp(['    Current distance: ',num2str(iter-1)]);
+    file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...
+    '_N_',num2str(N),'.txt'];
+    StateFileID = fopen(file_name,'a');
+    msg = ['    Current distance: ',num2str(iter-1)];
+    disp(msg);
+    fprintf(StateFileID, '%s\n', msg);
     [row, ~] = size(Valid_TBPs{iter});
     % hash table was defined here.
 
@@ -178,12 +200,23 @@ end
 TBP_node.aggregate = aggregate;
 
 % Save results
-file_name = ['TBP_node_CC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
+file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...
+    '_N_',num2str(N),'.txt'];
+StateFileID = fopen(file_name,'a');
+msg = 'Completed and save results!';
+disp(msg);
+fprintf(StateFileID, '%s\n', msg);
 
+
+file_name = ['TBP_node_CC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
 save(file_name,'TBP_node','-v7.3');
 
 timing = toc;
-disp(['Execution time: ',num2str(timing),'s']);
+msg = ['Execution time: ',num2str(timing),'s'];
+disp(msg);
+fprintf(StateFileID, '%s\n', msg);
+fclose(StateFileID);
+
 
 
 

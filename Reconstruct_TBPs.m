@@ -30,6 +30,7 @@ function TBP_node = Reconstruct_TBPs(code_generator, d_tilde, N)
 
 tic
 
+TBP_node  = {};
 code_string = '';
 for iter = 1:size(code_generator,2)
     code_string = [code_string, num2str(code_generator(iter)), '_'];
@@ -180,7 +181,7 @@ parfor iter = 1:d_tilde
     HashTable = containers.Map;
     for ii  = 1:row
         cur_seq = Valid_TBPs{iter}(ii,:);
-        key_cur_seq = binaryVectorToHex(double(cur_seq))
+        key_cur_seq = binary_to_hex(cur_seq)
         HashTable(key_cur_seq) = 1;
     end
 
@@ -189,7 +190,7 @@ parfor iter = 1:d_tilde
         Extended_seq = [cur_seq, cur_seq]; 
         for shift = 1:N-1
             cyclic_seq = Extended_seq(1+shift:N+shift);
-            key_cyclic_seq = binaryVectorToHex(double(cyclic_seq))
+            key_cyclic_seq = binary_to_hex(cyclic_seq)
             if isequal(cyclic_seq, cur_seq) % termination condition for cyclic shift
                 break
             end
@@ -204,6 +205,10 @@ parfor iter = 1:d_tilde
             '    completed: ',num2str(size(Valid_TBPs{iter},1)/full_spectrum(iter)*100),'%'];
         disp(msg);
         fprintf(StateFileID, '%s\n', msg);
+        
+        if size(Valid_TBPs{iter},1) == full_spectrum(iter) % termination condition
+            break
+        end     
     end
 end
 
@@ -236,8 +241,22 @@ disp(msg);
 fprintf(StateFileID, '%s\n', msg);
 fclose(StateFileID);
 
+end
 
 
+
+function str = binary_to_hex(binary_vec)
+
+str = '';
+Len = length(binary_vec);
+for i=Len:-4:1
+    shift = min(3, i-1);
+    four_tuple = binary_vec(i-shift:i);
+    hex = dec2hex(bin2dec(num2str(four_tuple)));
+    str = [str, hex];
+end
+str = fliplr(str);
+end
 
 
 

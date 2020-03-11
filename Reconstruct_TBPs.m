@@ -20,7 +20,9 @@ function TBP_node = Reconstruct_TBPs(code_generator, d_tilde, N)
 %   Notes:
 %       1) Must run "Collect_Irreducible_Error_Events" first if IEEs are
 %       not generated before
-%       2) The distance index equals true distance + 1, whereas the length
+%       2) Must run "Compute_TBCC_weight_spectrum" first if weight_node is
+%       not generated before
+%       3) The distance index equals true distance + 1, whereas the length
 %       index equals true length.
 % 
 
@@ -47,10 +49,21 @@ if ~exist(file_name, 'file')
     fprintf(StateFileID, '%s\n', msg);
     return
 end
-
 load(file_name, 'IEE');
 
 
+
+file_name2 = ['weight_node_TBCC_',code_string,'N_',num2str(N),'.mat'];
+if ~exist(file_name2, 'file')
+    msg = ['Error: the file ',file_name2, ' does not exist!'];
+    disp(msg);
+    fprintf(StateFileID, '%s\n', msg);
+    return
+end
+load(file_name2, 'weight_node');
+
+
+full_spectrum = weight_node.weight_spectrum;
 V = IEE.state_ordering;
 NumStates = length(V);
 Temp_TBPs = cell(d_tilde, 1); % used to find TBPs at each state
@@ -158,16 +171,16 @@ parfor iter = 1:d_tilde
     file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...
     '_N_',num2str(N),'.txt'];
     StateFileID = fopen(file_name,'a');
-    msg = ['    Current distance: ',num2str(iter-1)];
-    disp(msg);
-    fprintf(StateFileID, '%s\n', msg);
+%     msg = ['    Current distance: ',num2str(iter-1)];
+%     disp(msg);
+%     fprintf(StateFileID, '%s\n', msg);
     [row, ~] = size(Valid_TBPs{iter});
     % hash table was defined here.
 
     HashTable = containers.Map;
-    for ii  = 1:size(Valid_TBPs{iter},1)
+    for ii  = 1:row
         cur_seq = Valid_TBPs{iter}(ii,:);
-        key_cur_seq = dec2bin(bi2de(cur_seq),N);
+        key_cur_seq = binaryVectorToHex(double(cur_seq))
         HashTable(key_cur_seq) = 1;
     end
 
@@ -176,7 +189,7 @@ parfor iter = 1:d_tilde
         Extended_seq = [cur_seq, cur_seq]; 
         for shift = 1:N-1
             cyclic_seq = Extended_seq(1+shift:N+shift);
-            key_cyclic_seq = dec2bin(bi2de(cyclic_seq),N);
+            key_cyclic_seq = binaryVectorToHex(double(cyclic_seq))
             if isequal(cyclic_seq, cur_seq) % termination condition for cyclic shift
                 break
             end
@@ -185,6 +198,12 @@ parfor iter = 1:d_tilde
                 HashTable(key_cyclic_seq) = 1;
             end
         end
+        msg = ['Step 2 Progress: ','dist = ',num2str(iter-1),...
+            '   # of found TBPs: ',num2str(size(Valid_TBPs{iter},1)),...
+            ' out of total: ',num2str(full_spectrum(iter)),...
+            '    completed: ',num2str(size(Valid_TBPs{iter},1)/full_spectrum(iter)*100),'%'];
+        disp(msg);
+        fprintf(StateFileID, '%s\n', msg);
     end
 end
 

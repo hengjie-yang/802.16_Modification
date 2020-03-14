@@ -18,9 +18,9 @@ function TBP_node = Reconstruct_TBPs(code_generator, d_tilde, N)
 %                   of distance less than 'd_tilde'.
 %
 %   Notes:
-%       1) Must run "Collect_Irreducible_Error_Events" first if IEEs are
+%       1) Must run "Collect_Irreducible_Error_Events.m" first if IEEs are
 %       not generated before
-%       2) Must run "Compute_TBCC_weight_spectrum" first if weight_node is
+%       2) Must run "Compute_TBCC_weight_spectrum.m" first if weight_node is
 %       not generated before
 %       3) The distance index equals true distance + 1, whereas the length
 %       index equals true length.
@@ -151,16 +151,9 @@ end
 clearvars TBPs Temp_TBPs
 
 
-% % Verify if there are repetitive TBPs after building
-% HashNumber = 2^N+1; % This is the maximum number of cyclic shift
-% HashTable = zeros(HashNumber, 1);
-% for iter = 1:d_tilde
-%     for ii = 1:size(Valid_TBPs{iter},1)
-%         cur_seq = Valid_TBPs{iter}(ii,:);
-%         h = ComputeHash(cur_seq, HashNumber);
-%         HashTable(h) = HashTable(h) + 1;
-%     end
-% end
+
+
+
 
 
 % Step 2: Build all valid TBPs through circular shift
@@ -222,6 +215,9 @@ for dist = 1:d_tilde
 end
 
 TBP_node.aggregate = aggregate;
+
+
+
 
 % Save results
 file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...

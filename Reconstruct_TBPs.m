@@ -37,13 +37,13 @@ for iter = 1:size(code_generator,2)
 end
 
 % write status messages in a .txt file
-file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...
+file_name = ['status_log_recon_TBPs_TBCC_',code_string,'d_',num2str(d_tilde),...
     '_N_',num2str(N),'.txt'];
 StateFileID = fopen(file_name,'w');
 
 
 
-file_name = ['IEEs_CC_',code_string,'d_',num2str(d_tilde),'.mat'];
+file_name = ['IEEs_TBCC_',code_string,'d_',num2str(d_tilde),'.mat'];
 if ~exist(file_name, 'file')
     msg = ['Error: the file ',file_name, ' does not exist!'];
     disp(msg);
@@ -162,7 +162,7 @@ disp(msg);
 fprintf(StateFileID, '%s\n', msg);
 fclose(StateFileID);
 parfor iter = 1:d_tilde
-    file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...
+    file_name = ['status_log_recon_TBPs_TBCC_',code_string,'d_',num2str(d_tilde),...
     '_N_',num2str(N),'.txt'];
     StateFileID = fopen(file_name,'a');
 %     msg = ['    Current distance: ',num2str(iter-1)];
@@ -220,7 +220,7 @@ TBP_node.aggregate = aggregate;
 
 
 % Save results
-file_name = ['status_log_recon_TBPs_CC_',code_string,'d_',num2str(d_tilde),...
+file_name = ['status_log_recon_TBPs_TBCC_',code_string,'d_',num2str(d_tilde),...
     '_N_',num2str(N),'.txt'];
 StateFileID = fopen(file_name,'a');
 msg = 'Completed and save results!';
@@ -228,7 +228,7 @@ disp(msg);
 fprintf(StateFileID, '%s\n', msg);
 
 
-file_name = ['TBP_node_CC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
+file_name = ['TBP_node_TBCC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
 save(file_name,'TBP_node','-v7.3');
 
 timing = toc;

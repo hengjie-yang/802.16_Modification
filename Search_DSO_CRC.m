@@ -52,7 +52,7 @@ for iter = 1:size(code_generator,2)
     code_string = [code_string, num2str(code_generator(iter)), '_'];
 end
 
-file_name = ['TBP_node_CC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
+file_name = ['TBP_node_TBCC_',code_string,'d_',num2str(d_tilde),'_N_',num2str(N),'.mat'];
 if ~exist(file_name, 'file')
     disp(['Error: the file ',file_name, ' does not exist!']);
     return

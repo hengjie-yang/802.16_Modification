@@ -65,17 +65,22 @@ load(file_name2, 'weight_node');
 
 
 full_spectrum = weight_node.weight_spectrum;
+d_max = size(full_spectrum, 1);
+if d_tilde > d_max
+    msg = 'Error: (d_tilde-1) exceeds the maximum possible distance!';
+    disp(msg);
+    fprintf(StateFileID, '%s\n', msg);
+    return
+end
+
 V = IEE.state_ordering;
 NumStates = length(V);
+% v = log2(NumStates);
 Temp_TBPs = cell(d_tilde, 1); % used to find TBPs at each state
 
 
-TBPs = cell(d_tilde, 1); % official list
-for dist = 1:d_tilde
-    TBPs{dist} = cell(N+1,1);
-end
 
-State_spectrum = zeros(NumStates,1);
+% State_spectrum = zeros(NumStates,1); % the state spectrum for all TBP(st_state)
 Valid_TBPs = cell(d_tilde,1); % stores TBPs of length equal to N
 
 
@@ -128,27 +133,19 @@ for iter = 1:NumStates % find TBPs from every possible start state
 
     % After building, we need to stack newly found TBPs to existing
     % TBPs
+
+
     for dist = 1:d_tilde
-        for len = 1:N+1
-            if ~isempty(Temp_TBPs{dist}{len})
-                TBPs{dist}{len} = int8(TBPs{dist}{len}); %save memory
-                TBPs{dist}{len} = [TBPs{dist}{len}; Temp_TBPs{dist}{len}];
-            end
+        if ~isempty(Temp_TBPs{dist}{N+1})
+            Valid_TBPs{dist} = int8(Valid_TBPs{dist}); %save memory
+            Valid_TBPs{dist} = [Valid_TBPs{dist}; Temp_TBPs{dist}{N+1}];
         end
     end
 end
 
 
 
-for dist=1:d_tilde
-    if ~isempty(TBPs{dist}{N+1})
-        Valid_TBPs{dist} = int8(Valid_TBPs{dist});%save memory
-        Valid_TBPs{dist} = TBPs{dist}{N+1};
-    end
-end
-
-
-clearvars TBPs Temp_TBPs
+clearvars  Temp_TBPs
 
 
 
@@ -161,35 +158,39 @@ msg = 'Step 2: Build remaining TBPs through cyclic shift.';
 disp(msg);
 fprintf(StateFileID, '%s\n', msg);
 fclose(StateFileID);
+
+
 parfor iter = 1:d_tilde
     file_name = ['status_log_recon_TBPs_TBCC_',code_string,'d_',num2str(d_tilde),...
     '_N_',num2str(N),'.txt'];
     StateFileID = fopen(file_name,'a');
-%     msg = ['    Current distance: ',num2str(iter-1)];
-%     disp(msg);
-%     fprintf(StateFileID, '%s\n', msg);
     [row, ~] = size(Valid_TBPs{iter});
+    
     % hash table was defined here.
-
     HashTable = containers.Map;
     for ii  = 1:row
         cur_seq = Valid_TBPs{iter}(ii,:);
-        key_cur_seq = binary_to_hex(cur_seq)
+        key_cur_seq = binary_to_hex(cur_seq);
         HashTable(key_cur_seq) = 1;
+        
+%         start_state = bin2dec(num2str(cur_seq(end-v+1:end)))+1;
+%         State_spectrum(start_state) = State_spectrum(start_state)+1;
     end
 
     for ii = 1:row
-        cur_seq = Valid_TBPs{iter}(ii,:);        
+        cur_seq = Valid_TBPs{iter}(ii,:);  
+%         start_state = bin2dec(num2str(cur_seq(end-v+1:end)))+1;
         Extended_seq = [cur_seq, cur_seq]; 
         for shift = 1:N-1
             cyclic_seq = Extended_seq(1+shift:N+shift);
-            key_cyclic_seq = binary_to_hex(cyclic_seq)
+            key_cyclic_seq = binary_to_hex(cyclic_seq);
             if isequal(cyclic_seq, cur_seq) % termination condition for cyclic shift
                 break
             end
             if ~isKey(HashTable, key_cyclic_seq)
                 Valid_TBPs{iter} = [Valid_TBPs{iter};cyclic_seq]; % find a new TBP
                 HashTable(key_cyclic_seq) = 1;
+%                 State_spectrum(start_state) = State_spectrum(start_state)+1;
             end
         end
         msg = ['Step 2 Progress: ','dist = ',num2str(iter-1),...
@@ -213,6 +214,8 @@ aggregate = 0;
 for dist = 1:d_tilde
     aggregate = aggregate +size(Valid_TBPs{dist},1);
 end
+
+% TBP_node.state_spectrum = State_spectrum;
 
 TBP_node.aggregate = aggregate;
 

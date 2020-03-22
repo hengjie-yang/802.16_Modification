@@ -7,7 +7,8 @@ function TBP_node = Reconstruct_TBPs(code_generator, d_tilde, N)
 %
 %   Inputs:
 %       1) code_generator: a matrix specifying the generator of TBCC
-%       3) d_tilde: the distance threshold
+%       2) d_tilde: the distance threshold
+%       3) N: the trellis length
 %
 %   Outputs:
 %       1) TBP_node: a struct including the following members:
